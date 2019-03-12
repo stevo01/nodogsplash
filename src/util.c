@@ -65,6 +65,7 @@
 #include "debug.h"
 #include "fw_iptables.h"
 
+#define DURATION_BUFF_LEN 128
 
 /* Defined in main.c */
 extern time_t started_time;
@@ -325,18 +326,18 @@ get_ext_iface(void)
 }
 
 char *
-format_duration(time_t from, time_t to, char buf[64])
+format_duration(time_t from, time_t to, char buf[DURATION_BUFF_LEN])
 {
 	int days, hours, minutes, seconds;
 	long long int secs;
-
+	char *tmp = buf;
 	if (from <= to) {
 		secs = to - from;
 	} else {
 		secs = from - to;
 		// Prepend minus sign
-		buf[0] = '-';
-		buf += 1;
+		tmp[0] = '-';
+		tmp += 1;
 	}
 
 	days = secs / (24 * 60 * 60);
@@ -348,13 +349,13 @@ format_duration(time_t from, time_t to, char buf[64])
 	seconds = secs;
 
 	if (days > 0) {
-		sprintf(buf, "%dd %dh %dm %ds", days, hours, minutes, seconds);
+		snprintf(tmp, DURATION_BUFF_LEN, "%dd %dh %dm %ds", days, hours, minutes, seconds);
 	} else if (hours > 0) {
-		sprintf(buf, "%dh %dm %ds", hours, minutes, seconds);
+		snprintf(tmp, DURATION_BUFF_LEN, "%dh %dm %ds", hours, minutes, seconds);
 	} else if (minutes > 0) {
-		sprintf(buf, "%dm %ds", minutes, seconds);
+		snprintf(tmp, DURATION_BUFF_LEN, "%dm %ds", minutes, seconds);
 	} else {
-		sprintf(buf, "%ds", seconds);
+		snprintf(tmp, DURATION_BUFF_LEN, "%ds", seconds);
 	}
 
 	return buf;
@@ -371,7 +372,7 @@ format_time(time_t time, char buf[64])
 char *
 get_uptime_string()
 {
-	char *buf = malloc(64);
+	char *buf = malloc(DURATION_BUFF_LEN);
 	return format_duration(started_time, time(NULL), buf);
 }
 
@@ -379,7 +380,7 @@ void
 ndsctl_status(FILE *fp)
 {
 	char timebuf[32];
-	char durationbuf[128];
+	char durationbuf[DURATION_BUFF_LEN];
 	s_config *config;
 	t_client *client;
 	int indx;
